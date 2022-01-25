@@ -44,7 +44,7 @@ export default function ChatPage(){
         marginTop: '-10px',
         paddingTop: '20px'
         }}>
-          <FontAwesomeIcon styleSheet={{height: '10px', color: '#00E6EB'}} icon={faArrowLeft}/>
+          <FontAwesomeIcon styleSheet={{height: '10px', textColor: '#00E6EB'}} icon={faArrowLeft}/>
         </a>
 
         <Text styleSheet={{
