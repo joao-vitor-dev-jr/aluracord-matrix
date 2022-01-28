@@ -1,26 +1,48 @@
 import { Box, Button, Text, TextField, Image } from '@skynexui/components';
-import React,{useState} from 'react';
+import React,{useEffect, useState} from 'react';
 import appConfig from '../config.json';
+import {createClient} from '@supabase/supabase-js';
 
+
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlhdCI6MTY0MzMwOTg3MiwiZXhwIjoxOTU4ODg1ODcyfQ.HB_VSw2eY3rLPcBCcHsoe6H09x7v8I6AgeCAkzituQw';
+const SUPABASE_URL = 'https://rrekpkgtpaviqhedukgd.supabase.co';
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 
 
 export default function ChatPage(){
-  
+
   const [mensage, setMensage] = useState('');
   const [chat, setChat] = useState([]);
+    
+  useEffect(()=>{
+    const msg = supabase
+    .from('mensagens')
+    .select('*')
+    .order('id',{ascending: false}) //supabase .order inverte o chat
+    .then(({data})=>{
+      console.log('dados da consulta:', data);
+      setChat(data);
+  });
+  },[]);
+
 
   function novaMensagem(newMensage){
     const mensagem = {
-      id: chat.length + 1,
+      //id: chat.length + 1,
       de: 'joao-vitor-dev-jr',
       texto: newMensage,
        
     };
-    setChat([
-      mensagem,...chat, 
-      
-    ]);
+    supabase.from('mensagens')
+    .insert([mensagem])
+    .then(({data})=>{
+        console.log('criando mensagem:', data);
+        setChat([
+         data[0],...chat, 
+        ]);
+    });
+
     setMensage('');
   }
 
@@ -116,12 +138,13 @@ export default function ChatPage(){
                         />
                         <Button
                         type='submit'
-                    styleSheet={{
-                      color:'#00E6EB', 
-                      backgroundColor: appConfig.theme.colors.neutrals[500],
-                      alignItems: 'center', 
-                      justifyContent: 'center',
-                      hover:{color: '#ffff', backgroundColor: '#00E6EB'}
+                        styleSheet={{
+                        color:'#00E6EB',
+                        top: '-4px', 
+                        backgroundColor: appConfig.theme.colors.neutrals[500],
+                        alignItems: 'center', 
+                        justifyContent: 'center',
+                        hover:{color: '#ffff', backgroundColor: '#00E6EB'}
                     }}
                     colorVariant='neutral'
                     label='Enviar'
@@ -157,6 +180,7 @@ function Header() {
     )
 }
 
+
 function MessageList(props) {
     console.log(props);
     
@@ -164,7 +188,7 @@ function MessageList(props) {
         <Box
             tag="ul"
             styleSheet={{
-                overflowY: 'scroll',
+                overflowY: 'scroll'|'hidden',
                 display: 'flex',
                 flexDirection: 'column-reverse',
                 flex: 1,

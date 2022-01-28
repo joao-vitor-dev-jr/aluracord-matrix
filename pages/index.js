@@ -1,9 +1,12 @@
 import { Box, Button, Text, TextField, Image } from '@skynexui/components';
-import React,{useState} from 'react';
-import {useRouter} from 'next/router';
+import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/router';
 import appConfig from '../config.json';
+import { createClient } from '@supabase/supabase-js';
 
-
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlhdCI6MTY0MzMwOTg3MiwiZXhwIjoxOTU4ODg1ODcyfQ.HB_VSw2eY3rLPcBCcHsoe6H09x7v8I6AgeCAkzituQw';
+const SUPABASE_URL = 'https://rrekpkgtpaviqhedukgd.supabase.co';
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 function Titulo(props) {
   const Tag = props.tag || 'h1';
@@ -21,7 +24,7 @@ function Titulo(props) {
   );
 }
 
- //Componente React
+//Componente React
 // function HomePage() {
 //
 //     return (
@@ -35,9 +38,41 @@ function Titulo(props) {
 // export default HomePage
 
 export default function PaginaInicial() {
-  //const username = 'joao-vitor-dev-jr';
-  const [username, setUsername] = useState('joao-vitor-dev-jr');
+  const [users, setUsers] = useState('');
+  const [username, setUsername] = useState([]);
   const roteamento = useRouter();
+
+
+
+ async  function newUser(novoNome) {
+    const user = {
+      nome: novoNome
+    };
+    const validation = await supabase
+      .from('users')
+      .select('*')
+      .then(({ data }) => {
+          console.log('dados da consulta:', data);
+          setUsername(data);
+
+          if(user == setUsername(data))
+            roteamento.push('/chat');
+          else{
+            supabase.from('users')
+          .insert([user])
+          .then(({ data }) => {
+            console.log('usuario: ', data);
+            setUsername([
+            data[0],
+            ]);
+            roteamento.push('/chat');
+          });
+          }  
+
+      });
+      
+}
+  
 
   return (
     <>
@@ -67,10 +102,11 @@ export default function PaginaInicial() {
           {/* Formulário */}
           <Box
             as="form"
-            onSubmit={function(infosDoEvento){
+            onSubmit={function (infosDoEvento) {
               infosDoEvento.preventDefault();
               console.log('alguem submeteu o form');
-              roteamento.push('/chat');
+              newUser(users)
+              //roteamento.push('/chat');
               //window.location.href='/chat';
             }}
             styleSheet={{
@@ -96,15 +132,23 @@ export default function PaginaInicial() {
           />*/}
 
             <TextField
-              value={username}
-              onChange={function (event){
-              console.log('usuario digitou', event.target.value)
-              //onde ta o valor?
-              const valor = event.target.value;
-              //trocar o valor da variaveil
-              //atraves do React e avise quem precisa
-              setUsername(valor);
-            }}
+              value={users}
+              onChange={function (event) {
+                console.log('usuario digitou', event.target.value)
+                //onde ta o valor?
+                const valor = event.target.value;
+                //trocar o valor da variaveil
+                //atraves do React e avise quem precisa
+                setUsers(valor);
+                
+              }}
+              onKeyPress={(event) => {
+                if (event.key === 'Enter') {
+                  event.preventDefault();
+                  newUser(users);
+                }
+
+              }}
               fullWidth
               textFieldColors={{
                 neutral: {
@@ -132,6 +176,7 @@ export default function PaginaInicial() {
 
 
           {/* Photo Area */}
+          
           <Box
             styleSheet={{
               display: 'flex',
@@ -152,9 +197,10 @@ export default function PaginaInicial() {
                 borderRadius: '50%',
                 marginBottom: '16px',
               }}
-              src={`https://github.com/${username}.png`}
+              src={`https://github.com/${users}.png`}
             />
             <Text
+              
               variant="body4"
               styleSheet={{
                 color: appConfig.theme.colors.neutrals[200],
@@ -163,7 +209,7 @@ export default function PaginaInicial() {
                 borderRadius: '1000px'
               }}
             >
-              {username}
+              {users}
             </Text>
           </Box>
           {/* Photo Area */}
